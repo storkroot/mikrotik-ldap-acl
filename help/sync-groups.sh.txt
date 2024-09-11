@@ -1,0 +1,9 @@
+Usage:
+  ./sync-groups.sh [OPTION]
+
+Options:
+  -d		Debug mode (to show errors)
+  -f		Force update all ACL's!
+  -h		Show this help message
+  -v		Show version
+

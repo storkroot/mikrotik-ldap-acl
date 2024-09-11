@@ -1,0 +1,4 @@
+CN=gG-US-Unit_Buh,OU=Units,OU=Groups,DC=example,DC=local;ovpn-clients-buh;fee136e3c99aabe3
+CN=gG-US-Unit_Adm,OU=Units,OU=Groups,DC=example,DC=local;ovpn-clients-adm;1eee6b9714f90884
+CN=gG-US-Unit_IT,OU=Units,OU=Groups,DC=example,DC=local;ovpn-clients-it;2a8c7c383dcdd0ff
+CN=gG-US-Unit_IT,OU=Units,OU=Groups,DC=example,DC=local;in-mgmt;b92dd23208735b67
