@@ -14,33 +14,33 @@
 ## Как настроить?
 Получите содержимое репозитория с GitHub:
 ```
-mkdir -p /opt/storkroot/mikrotik-ldap-acl
-cd /opt/storkroot/mikrotik-ldap-acl
+mkdir -p /opt/mikrotik-ldap-acl
+cd /opt/mikrotik-ldap-acl
 git clone https://github.com/storkroot/mikrotik-ldap-acl.git .
 ```
 
 Создайте каталоги, необходимые для работы скрипта:
 ```
-cd /opt/storkroot/mikrotik-ldap-acl
+cd /opt/mikrotik-ldap-acl
 mkdir -p keys temp var/lib
 ```
 
 Сгенерируйте ключи для служебной УЗ на устройствах MikroTik:
 ```
-cd /opt/storkroot/mikrotik-ldap-acl
+cd /opt/mikrotik-ldap-acl
 ssh-keygen -m pem -t rsa -b 2048 -f ./keys/s-mik-conf -C s-mik-conf@at01.sa.example.local
 ```
 
 Скопируйте файл common.env.sample, убрав sample в окончании, и измените значения переменных в файле:
 ```
-cd /opt/storkroot/mikrotik-ldap-acl
+cd /opt/mikrotik-ldap-acl
 cp common.env.sample common.env
 vi common.env
 ```
 
 Создайте файл acl.db и внесите в файл данные о группах безопасности в AD; определите соответствие группы имени ACL и добавьте SID[^2]. Одна строка на группу. Три значения, разделенные точкой с запятой в каждой строке: DN группы, наименование ACL, SID. SID можете сгенерировать удобным для вас способом:
 ```
-cd /opt/storkroot/mikrotik-ldap-acl
+cd /opt/mikrotik-ldap-acl
 touch acl.db
 echo "CN=gG-US-Unit_Buh,OU=Units,OU=Groups,DC=example,DC=local;gG-US-Unit_Buh;$(openssl rand -hex 8 | tr A-Z a-z)" >> acl.db
 ```
@@ -72,7 +72,7 @@ sync-groups.sh: The gG-US-Unit_Buh address list on router 10.1.96.254 has been u
 
 Или добавьте задание в cron для запуска раз в 30 минут или чаще:
 ```
-echo "*/30 *	* * * /opt/storkroot/mikrotik-ldap-acl/sync-groups.sh > /dev/null" >> /etc/crontab
+echo "*/30 *	* * * /opt/mikrotik-ldap-acl/sync-groups.sh > /dev/null" >> /etc/crontab
 ```
 
 Если требуется выполнить принудительное обновление списков (не принимая во внимание изменения в группах), выполните скрипт с ключом -f:
