@@ -1,22 +1,22 @@
 # Синхронизация групп AD с ACL на MikroTik
 ## Зачем это?
 Задача актуальна в случае, если:
-1. вы управляете безопасностью на сетевом уровне, а именно, фильтруете соединения в направлении узлов защищаемых сегментов на маршрутизаторе, который управляет модулями сети inter-vlan-routing и firewall;
-2. вы резервируете ip-адрес пользователя и лишаете пользователя возможности его изменить;
-3. вы ведете базу данных (пусть даже в файле), где определяете соответствие логина пользователя и назначенного ему ip-адреса[^1].
+1. Вы управляете безопасностью на сетевом уровне, а именно, фильтруете соединения в направлении узлов защищаемых сегментов на маршрутизаторе, который управляет модулями сети inter-vlan-routing и firewall;
+2. Вы резервируете ip-адрес за пользователем и лишаете пользователя возможности его изменить;
+3. Вы ведете базу данных (пусть даже в файле), где определяете соответствие логина пользователя и назначенного ему ip-адреса[^1].
 
 [^1]: Например, используйте файл ipp.txt сервиса OpenVPN
 
 Располагая данными (логином пользователя, его ip-адресом и членством пользователя в группах безопасности в AD), вы можете формировать списки доступа (ACL) с именем группы безопасности в AD и записями, содержащими ip-адрес пользователя и имя пользователя в поле комментария. Скрипт, добавленный в crontab, будет выполнять обновление состава ACL с заданной периодичностью, избавляя вас от необходимости редактировать списки вручную.
 
-Очевидным образом, разрешающие правила в таблице filter следует составлять, указывая в значении src-address-list одноименный с группой безопасности ACL.
+Очевидным образом, разрешающие правила в таблице filter следует составлять, указывая в значении src-address-list верное наименование ACL.
 
 ## Как настроить?
 Получите содержимое репозитория с GitHub:
 ```
 mkdir -p /opt/mikrotik-ldap-acl
 cd /opt/mikrotik-ldap-acl
-git clone https://github.com/storkroot/mikrotik-ldap-acl.git .
+git clone https://github.com/mikrotik-ldap-acl.git .
 ```
 
 Создайте каталоги, необходимые для работы скрипта:
@@ -42,9 +42,8 @@ vi common.env
 ```
 cd /opt/mikrotik-ldap-acl
 touch acl.db
-echo "CN=gG-US-Unit_Buh,OU=Units,OU=Groups,DC=example,DC=local;gG-US-Unit_Buh;$(openssl rand -hex 8 | tr A-Z a-z)" >> acl.db
+echo "CN=gG-US-Unit_Buh,OU=Units,OU=Groups,DC=example,DC=local;ovpn-clients-buh;$(openssl rand -hex 8)" >> acl.db
 ```
-
 [^2]: subject ID – идентификатор субъекта доступа
 
 Установите дополнительные пакеты (нам нужен ldapsearch):
@@ -67,7 +66,7 @@ ltrotskiy,172.16.54.4
 Вы можете запустить скрипт вручную, выполнив файл sync-groups.sh:
 ```
 $ ./sync-groups.sh 
-sync-groups.sh: The gG-US-Unit_Buh address list on router 10.1.96.254 has been updated successfully!
+sync-groups.sh: The ovpn-clients-buh address list on router 10.1.96.254 has been updated successfully!
 ```
 
 Или добавьте задание в cron для запуска раз в 30 минут или чаще:
@@ -75,12 +74,12 @@ sync-groups.sh: The gG-US-Unit_Buh address list on router 10.1.96.254 has been u
 echo "*/30 *	* * * /opt/mikrotik-ldap-acl/sync-groups.sh > /dev/null" >> /etc/crontab
 ```
 
-Если требуется выполнить принудительное обновление списков (не принимая во внимание изменения в группах), выполните скрипт с ключом -f:
+Если требуется выполнить принудительное обновление списков (независимо от наличия изменений в группах), выполните скрипт с ключом -f:
 ```
 $ ./sync-groups.sh -f
-sync-groups.sh: The gG-US-Unit_Adm address list on router 10.1.96.254 has been updated successfully!
-sync-groups.sh: The gG-US-Unit_Buh address list on router 10.1.96.254 has been updated successfully!
-sync-groups.sh: The gG-US-Unit_IT address list on router 10.1.96.254 has been updated successfully!
+sync-groups.sh: The ovpn-clients-adm address list on router 10.1.96.254 has been updated successfully!
+sync-groups.sh: The ovpn-clients-buh address list on router 10.1.96.254 has been updated successfully!
+sync-groups.sh: The ovpn-clients-it address list on router 10.1.96.254 has been updated successfully!
 ```
 
 Скрипт снабжен встроенной справкой. Для вывода справки запустите sync-group.sh c ключом -h:
@@ -99,15 +98,20 @@ Options:
 Для "красивого" вывода списка групп из файла acl.db, выполните скрипт show-acl-db.sh:
 ```
 $ ./show-acl-db.sh
-Distinguished Name                                        ACL             SID
-CN=gG-US-Unit_Adm,OU=Units,OU=Groups,DC=example,DC=local  gG-US-Unit_Adm  1eee6b9714f90884
-CN=gG-US-Unit_Buh,OU=Units,OU=Groups,DC=example,DC=local  gG-US-Unit_Buh  fee136e3c99aabe3
-CN=gG-US-Unit_IT,OU=Units,OU=Groups,DC=example,DC=local   gG-US-Unit_IT   2a8c7c383dcdd0ff
+Distinguished Name                                        ACL               SID
+CN=gG-US-Unit_Adm,OU=Units,OU=Groups,DC=example,DC=local  ovpn-clients-adm  1eee6b9714f90884
+CN=gG-US-Unit_Buh,OU=Units,OU=Groups,DC=example,DC=local  ovpn-clients-buh  fee136e3c99aabe3
+CN=gG-US-Unit_IT,OU=Units,OU=Groups,DC=example,DC=local   ovpn-clients-it   2a8c7c383dcdd0ff
+CN=gG-US-Unit_IT,OU=Units,OU=Groups,DC=example,DC=local   in-mgmt           b92dd23208735b67
 ```
 
 ## Особенности
 * Скрипт может определить до трех ip-адресов на пользователя для записей в БД вида: username, username2 и username3;
-* Если будете переписывать ACL раз в пять минут на железках (на CCR или RB) в принудительном режиме, скоро положите флешку. Логикой работы предусмотрена запись лишь в случае изменений в группах безопасности в AD;
-* Имя ACL не обязательно должно совпадать с именем группы безопасности в AD. Если у вас уже созданы правила с другим наименованием ACL, вы можете добавить записи в эти ACL, определяя верное соответствие между группой и ACL в файле acl.db;
+* Если будете переписывать ACL раз в пять минут на железках (на CCR или RB) в принудительном порядке, скоро положите флешку. Логикой работы предусмотрена запись лишь в случае изменений в группах безопасности в AD;
+* Имя ACL может совпадать с именем группы безопасности в AD, а может быть иным. Если у вас уже созданы правила с другим наименованием ACL, вы можете добавить записи в эти ACL, определяя верное соответствие между группой и ACL в файле acl.db;
 * Вы можете переименовать ACL в любой момент. Удаление записей происходит не по имени списка, а по идентификатору SID. Однако, помните, что в правилах фильтрации ACL сами собой не изменятся;
 * Вы можете использовать несколько групп AD для наполнения одного и того же ACL, но SID для этих записей в acl.db должен быть разным.
+
+## Чего ещё добавить?
+1. Возможность выполнять скрипт, передавая ip-адрес(а) устройства аргументом после ключа -l (list);
+2. Поправить синтаксис для работы в т. ч. с устройствами под управлением RouterOS 6.x.
