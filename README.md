@@ -16,7 +16,7 @@
 ```
 mkdir -p /opt/mikrotik-ldap-acl
 cd /opt/mikrotik-ldap-acl
-git clone https://github.com/mikrotik-ldap-acl.git .
+git clone https://github.com/storkroot/mikrotik-ldap-acl.git .
 ```
 
 Создайте каталоги, необходимые для работы скрипта:
